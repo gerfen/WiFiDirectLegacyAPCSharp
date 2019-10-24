@@ -8,14 +8,57 @@ namespace WiFiDirectLegacyAPCSharp
 {
     internal class WiFiDirectHotspotManager
     {
-        private IWlanHostedNetworkListener listener_;
         private WiFiDirectAdvertisementPublisher publisher_;
         private WiFiDirectAdvertisement advertisement_;
         private WiFiDirectLegacySettings legacySettings_;
         private WiFiDirectConnectionListener connectionListener_;
         private readonly List<WiFiDirectDevice> connectedDevices_;
+
         private string ssid_;
         private string passphrase_;
+
+        public event EventHandler<DeviceEventArgs> DeviceConnected;
+        public event EventHandler<DeviceEventArgs> DeviceDisconnected;
+        public event EventHandler<string> AdvertisementStarted;
+        public event EventHandler<string> AdvertisementStopped;
+        public event EventHandler<string> AdvertisementAborted;
+        public event EventHandler<string> AsyncException;
+
+        private void RaiseDeviceConnected(WiFiDirectDevice device, string message)
+        {
+            var handler = DeviceConnected;
+            handler?.Invoke(this, new DeviceEventArgs(device, message));
+        }
+
+        private void RaiseDeviceDisconnected(WiFiDirectDevice device, string message)
+        {
+            var handler = DeviceDisconnected;
+            handler?.Invoke(this, new DeviceEventArgs(device, message));
+        }
+
+        private void RaiseAdvertisementStarted(string message)
+        {
+            var handler = AdvertisementStarted;
+            handler?.Invoke(this, message);
+        }
+
+        private void RaiseAdvertisementStopped(string message)
+        {
+            var handler = AdvertisementStopped;
+            handler?.Invoke(this, message);
+        }
+
+        private void RaiseAdvertisementAborted(string message)
+        {
+            var handler = AdvertisementAborted;
+            handler?.Invoke(this, message);
+        }
+
+        private void RaiseAsyncException(string message)
+        {
+            var handler = AsyncException;
+            handler?.Invoke(this, message);
+        }
 
         public WiFiDirectHotspotManager(string ssid, string passphrase) : this()
         {
@@ -27,8 +70,6 @@ namespace WiFiDirectLegacyAPCSharp
         {
             SsidProvided = false;
             PassphraseProvided = false;
-            listener_ = null;
-
             connectedDevices_ = new List<WiFiDirectDevice>();
         }
 
@@ -63,7 +104,7 @@ namespace WiFiDirectLegacyAPCSharp
         public bool PassphraseProvided { get; set; }
 
 
-        public void StartListener()
+        private void StartConnectionListener()
         {
             connectionListener_ = new WiFiDirectConnectionListener();
             connectionListener_.ConnectionRequested += ConnectionListenerOnConnectionRequested;
@@ -97,7 +138,7 @@ namespace WiFiDirectLegacyAPCSharp
                     var connection = endpointPairs.First();
                     var remoteHostName = connection.RemoteHostName;
                     var remoteHostNameDisplay = remoteHostName.DisplayName;
-                    listener_.OnDeviceConnected(remoteHostNameDisplay);
+                    RaiseDeviceConnected(wiFiDirectDevice, $"{remoteHostNameDisplay} connected.");
                     connectedDevices_.Add(wiFiDirectDevice);
                 }
                 wiFiDirectDevice.ConnectionStatusChanged += WfdDeviceOnConnectionStatusChanged;
@@ -117,8 +158,7 @@ namespace WiFiDirectLegacyAPCSharp
             var status = wiFiDirectDevice.ConnectionStatus;
             if (status == WiFiDirectConnectionStatus.Connected)
             {
-                
-                listener_.OnDeviceConnected(remoteHostNameDisplay);
+                RaiseDeviceConnected(wiFiDirectDevice, $"{remoteHostNameDisplay} connected");
             }
             else
             {
@@ -126,7 +166,7 @@ namespace WiFiDirectLegacyAPCSharp
                 {
                     connectedDevices_.Remove(wiFiDirectDevice);
                 }
-                listener_.LogMessage($"{remoteHostNameDisplay} disconnected.");
+                RaiseDeviceDisconnected(wiFiDirectDevice, $"{remoteHostNameDisplay} disconnected.");
             }
         }
 
@@ -181,18 +221,14 @@ namespace WiFiDirectLegacyAPCSharp
                 {
                     case WiFiDirectAdvertisementPublisherStatus.Started:
                         {
-                            // Begin listening for connections and notify listener that the advertisement started
-                            StartListener();
-                            listener_?.OnAdvertisementStarted();
+                          StartConnectionListener();
+                            RaiseAdvertisementStarted("Advertisement started.");
                             break;
                         }
                     case WiFiDirectAdvertisementPublisherStatus.Aborted:
                         {
-                            // Check error and notify listener that the advertisement stopped
                             var error = args.Error;
                            
-                            if (listener_ != null)
-                            {
                                 string message;
 
                                 switch (error)
@@ -210,21 +246,19 @@ namespace WiFiDirectLegacyAPCSharp
                                         break;
                                 }
 
-                                listener_.OnAdvertisementAborted(message);
-                            }
+                                RaiseAdvertisementAborted(message);
                             break;
                         }
                     case WiFiDirectAdvertisementPublisherStatus.Stopped:
                         {
-                            // Notify listener that the advertisement is stopped
-                            listener_?.OnAdvertisementStopped("Advertisement stopped");
+                            RaiseAdvertisementStopped("Advertisement stopped");
                             break;
                         }
                 }
             }
             catch (WlanHostedNetworkException ex)
             {
-                listener_?.OnAsyncException(ex.Message);
+                RaiseAsyncException(ex.Message);
             }
         }
 
@@ -252,11 +286,6 @@ namespace WiFiDirectLegacyAPCSharp
             }
 
             connectedDevices_.Clear();
-        }
-
-        public void RegisterListener(IWlanHostedNetworkListener listener)
-        {
-            listener_ = listener;
         }
     }
 }

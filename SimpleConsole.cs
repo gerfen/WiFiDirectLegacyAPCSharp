@@ -2,15 +2,78 @@
 
 namespace WiFiDirectLegacyAPCSharp
 {
-    public class SimpleConsole : IWlanHostedNetworkListener
+    public class SimpleConsole 
     {
         private readonly WiFiDirectHotspotManager wiFiDirectHotspotManager_;
 
         public SimpleConsole()
         {
+            // Use the constructor below to use your own SSIS and passphrase.
             //wiFiDirectHotspotManager_ = new WiFiDirectHotspotManager("<your-ssid>, "<your-password>");
+
             wiFiDirectHotspotManager_ = new WiFiDirectHotspotManager();
-            wiFiDirectHotspotManager_.RegisterListener(this);
+           
+            wiFiDirectHotspotManager_.AdvertisementAborted += OnAdvertisementAborted;
+            wiFiDirectHotspotManager_.AdvertisementStarted += OnAdvertisementStarted;
+            wiFiDirectHotspotManager_.AdvertisementStopped += OnAdvertisementStopped;
+            wiFiDirectHotspotManager_.AsyncException += OnAsyncException;
+            wiFiDirectHotspotManager_.DeviceConnected += OnDeviceConnected;
+            wiFiDirectHotspotManager_.DeviceDisconnected += OnDeviceDisconnected;
+           
+        }
+
+        ~SimpleConsole()
+        {
+            wiFiDirectHotspotManager_.AdvertisementAborted -= OnAdvertisementAborted;
+            wiFiDirectHotspotManager_.AdvertisementStarted -= OnAdvertisementStarted;
+            wiFiDirectHotspotManager_.AdvertisementStopped -= OnAdvertisementStopped;
+            wiFiDirectHotspotManager_.AsyncException -= OnAsyncException;
+            wiFiDirectHotspotManager_.DeviceConnected -= OnDeviceConnected;
+            wiFiDirectHotspotManager_.DeviceDisconnected -= OnDeviceDisconnected;
+        }
+
+        private void OnAdvertisementAborted(object sender, string message)
+        {
+            Console.WriteLine();
+            Console.WriteLine($"Soft AP aborted: {message}");
+            ShowPrompt();
+        }
+
+        private void OnAdvertisementStarted(object sender, string message)
+        {
+            Console.WriteLine();
+            Console.WriteLine("Soft AP started!");
+            Console.WriteLine($"Peers can connect to: {wiFiDirectHotspotManager_.Ssid}");
+            Console.WriteLine($"Passphrase: {wiFiDirectHotspotManager_.Passphrase}");
+            ShowPrompt();
+        }
+
+        public void OnAdvertisementStopped(object sender, string message)
+        {
+            Console.WriteLine();
+            Console.WriteLine($"Soft AP stopped: {message}");
+            ShowPrompt();
+        }
+
+        private void OnAsyncException(object sender, string message)
+        {
+            Console.WriteLine();
+            Console.WriteLine($"Caught exception in asynchronous method: {message}");
+            ShowPrompt();
+        }
+
+        private void OnDeviceConnected(object sender, DeviceEventArgs e)
+        {
+            Console.WriteLine();
+            Console.WriteLine($"{e.Message}");
+            ShowPrompt();
+        }
+
+        private void OnDeviceDisconnected(object sender, DeviceEventArgs e)
+        {
+            Console.WriteLine();
+            Console.WriteLine(e.Message);
+            ShowPrompt();
         }
 
         private void ShowPrompt()
@@ -43,17 +106,14 @@ namespace WiFiDirectLegacyAPCSharp
             {
                 Console.WriteLine("Starting soft AP...");
                 wiFiDirectHotspotManager_.Start();
-                //WaitForSingleObjectEx(_apEvent.Get(), INFINITE, FALSE);
             }
             if (command == "stop")
             {
                 Console.WriteLine("Stopping soft AP...");
                 wiFiDirectHotspotManager_.Stop();
-                //WaitForSingleObjectEx(_apEvent.Get(), INFINITE, FALSE);
             }
             if (command.Substring(0, 4).Equals("ssid"))
             {
-                // Parse the SSID as the first non-space character after ssid
                 var parts = command.Split(' ');
                 if (parts.Length == 2)
                 {
@@ -68,7 +128,6 @@ namespace WiFiDirectLegacyAPCSharp
             }
             if (command.Substring(0, 4).Equals("pass"))
             {
-                // Parse the Passphrase as the first non-space character after pass
                 var parts = command.Split(' ');
                 if (parts.Length == 2)
                 { 
@@ -81,11 +140,7 @@ namespace WiFiDirectLegacyAPCSharp
                     Console.WriteLine("Setting Passphrase FAILED, bad input");
                 }
             }
-            //else
-            //{
-            //    ShowHelp();
-            //}
-
+        
             return true;
         }
         public void RunConsole()
@@ -97,7 +152,7 @@ namespace WiFiDirectLegacyAPCSharp
             {
                 
                 var command = Console.ReadLine();
-                if (command.Length > 0)
+                if (command?.Length > 0)
                 {
                     try
                     {
@@ -114,50 +169,6 @@ namespace WiFiDirectLegacyAPCSharp
                 }
             }
             
-
-        }
-
-        public void OnDeviceConnected(string remoteHostName)
-        {
-            Console.WriteLine();
-            Console.WriteLine($"Peer connected: {remoteHostName}");
-            ShowPrompt();
-        }
-
-        public void OnAdvertisementStarted()
-        {
-            Console.WriteLine();
-            Console.WriteLine($"Soft AP started!");
-            Console.WriteLine($"Peers can connect to: {wiFiDirectHotspotManager_.Ssid}");
-            Console.WriteLine($"Passphrase: {wiFiDirectHotspotManager_.Passphrase}");
-            ShowPrompt();
-        }
-
-        public void OnAdvertisementStopped(string message)
-        {
-            Console.WriteLine();
-            Console.WriteLine($"Soft AP stopped: {message}");
-            ShowPrompt();
-        }
-
-        public void OnAdvertisementAborted(string message)
-        {
-            Console.WriteLine();
-            Console.WriteLine($"Soft AP aborted: {message}");
-            ShowPrompt();
-        }
-
-        public void OnAsyncException(string message)
-        {
-            Console.WriteLine();
-            Console.WriteLine($"Caught exception in asynchronous method: {message}");
-            ShowPrompt();
-        }
-
-        public void LogMessage(string message)
-        {
-            Console.WriteLine();
-            Console.WriteLine(message);
 
         }
     }
