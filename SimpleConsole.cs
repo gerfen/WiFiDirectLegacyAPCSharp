@@ -8,7 +8,7 @@ namespace WiFiDirectLegacyAPCSharp
 
         public SimpleConsole()
         {
-            // Use the constructor below to use your own SSIS and passphrase.
+            // Use the constructor below to use your own SSID and passphrase.
             //wiFiDirectHotspotManager_ = new WiFiDirectHotspotManager("<your-ssid>, "<your-password>");
 
             wiFiDirectHotspotManager_ = new WiFiDirectHotspotManager();
@@ -102,16 +102,19 @@ namespace WiFiDirectLegacyAPCSharp
                 Console.WriteLine("Exiting");
                 return false;
             }
+
             if (command == "start")
             {
                 Console.WriteLine("Starting soft AP...");
                 wiFiDirectHotspotManager_.Start();
             }
+
             if (command == "stop")
             {
                 Console.WriteLine("Stopping soft AP...");
                 wiFiDirectHotspotManager_.Stop();
             }
+
             if (command.Substring(0, 4).Equals("ssid"))
             {
                 var parts = command.Split(' ');
@@ -126,6 +129,7 @@ namespace WiFiDirectLegacyAPCSharp
                     Console.WriteLine("Setting SSID FAILED, bad input");
                 }
             }
+
             if (command.Substring(0, 4).Equals("pass"))
             {
                 var parts = command.Split(' ');
@@ -147,7 +151,7 @@ namespace WiFiDirectLegacyAPCSharp
         {
             ShowHelp();
             ShowPrompt();
-            bool running = true;
+            var running = true;
             while (running)
             {
                 

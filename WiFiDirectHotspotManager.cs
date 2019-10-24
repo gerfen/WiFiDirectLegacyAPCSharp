@@ -6,7 +6,7 @@ using Windows.Devices.WiFiDirect;
 
 namespace WiFiDirectLegacyAPCSharp
 {
-    internal class WiFiDirectHotspotManager
+    public class WiFiDirectHotspotManager
     {
         private WiFiDirectAdvertisementPublisher publisher_;
         private WiFiDirectAdvertisement advertisement_;

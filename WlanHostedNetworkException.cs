@@ -2,7 +2,7 @@
 
 namespace WiFiDirectLegacyAPCSharp
 {
-    internal class WlanHostedNetworkException : Exception
+    public class WlanHostedNetworkException : Exception
     {
       
         public WlanHostedNetworkException(string message)
