@@ -14,7 +14,7 @@ Developers of UWP applications can use this sample to see how to replace the dep
 
 The sample is organized up into the following files:
 
-- **WiFiDirectHotspotManager.cs** : This contains the code that uses the API in the WlanHostedNetworkHelper class. There is also a IWlanHostedNetworkListener interface that can be used by another application to receive notifications from events in the Wi-Fi Direct API. This part may be used as is or modified to fit your application needs.
+- **WiFiDirectHotspotManager.cs** : This contains the code that uses the WiFi Direct API. This part may be used as is or modified to fit your application needs.
 - **SimpleConsole.cs** : This is a simple console using Console input to take command line input and start or stop the Wi-Fi Direct legacy AP. It implements the IWlanHostedNetworkListener to handle receiving messages from the API.
 - **Program.cs** : Main entry point that starts the simple console.
 
