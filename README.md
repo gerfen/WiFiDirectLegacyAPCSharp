@@ -20,6 +20,8 @@ The sample is organized up into the following files:
 
 **Note** This sample requires Windows 10 to execute, as it uses new API's. It also requires a Wi-Fi Card and Driver that supports Wi-Fi Direct. These API's **do not** support cross-connectivity so clients connecting to this device will not be able to use it for Internet access.
 
+**Note** 
+Passphrase must be at least 8 characters !? Otherwise you will get a message saying "Advertisement aborted, unknown reason"
 
 Related topics
 --------------
